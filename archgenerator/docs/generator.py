@@ -3,17 +3,12 @@ from pathlib import Path
 from typing import List
 
 from . import context, md
+from .config import CONFIG, LANG_TO_EMOJI, LANG_TO_PRETTY_LANG
 from .names import valid_name, reset_names
 from ..models import Book, Section, Task
-from .consts import LANG_TO_EMOJI
 
 MD_IF_REGEX = re.compile(r"```(if(?:-not)?):(.*?)\n(.*?)```", re.MULTILINE | re.DOTALL)
 STYLE_REGEX = re.compile(r"<style(?:.*?)>(.*?)</style>", re.MULTILINE | re.DOTALL)
-
-LANG_TO_PRETTY_LANG = {
-    "javascript": "JavaScript",
-    "coffeescript": "CoffeeScript",
-}
 
 
 def extract_css_styles(content: str) -> str:
@@ -73,7 +68,7 @@ def generate_task(parent: Path, task: Task):
 
 
 def generate_section(parent: Path, section: Section):
-    root = parent / valid_name(section.name)
+    root = parent / valid_name(section.name, lower=True)
     root.mkdir(parents=True, exist_ok=True)
 
     for task in section.tasks:
@@ -81,7 +76,7 @@ def generate_section(parent: Path, section: Section):
 
 
 def generate_book(book: Book):
-    root = context.DOCS.get() / valid_name(book.name)
+    root = context.DOCS.get() / valid_name(book.name, lower=True)
 
     for section in book.sections:
         generate_section(root, section)
@@ -92,7 +87,7 @@ def generate_summary(books: List[Book]):
         yield md.option(
             md.link(
                 name=section.name,
-                url=f"/{parent}/{valid_name(section.name)}",
+                url=f"/{parent}/{valid_name(section.name, lower=True)}",
                 wrap=True,
             )
         )
@@ -101,7 +96,7 @@ def generate_summary(books: List[Book]):
             yield md.option(
                 md.link(
                     name=task.name,
-                    url=f"/{parent}/{valid_name(section.name)}/{valid_name(task.name, unique=True)}.md",
+                    url=f"/{parent}/{valid_name(section.name, lower=True)}/{valid_name(task.name, unique=True)}.md",
                     wrap=True,
                 ),
                 ident=4,
@@ -112,15 +107,15 @@ def generate_summary(books: List[Book]):
         yield md.header(book.name)
 
         for section in book.sections:
-            yield from section_summary(valid_name(book.name), section)
+            yield from section_summary(valid_name(book.name, lower=True), section)
 
     def summary():
-        yield md.header("Coding Challenges ⭐", important=1)
+        yield md.header(CONFIG["title"], important=1)
 
         for book in books:
             yield from book_summary(book)
 
-    md.readme(context.DOCS.get(), summary(), "SUMMARY.md")
+    md.readme(context.DOCS.get(), summary(), "README.md")
     reset_names()
 
 

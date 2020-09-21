@@ -6,7 +6,7 @@ PATH_CHARACTERS_TO_REPLACE = {*punctuation, " "} - {"-"}
 _NAMES_CACHE = Counter()
 
 
-def valid_name(name: str, unique: bool = False) -> str:
+def valid_name(name: str, unique: bool = False, lower: bool = False) -> str:
     for p in PATH_CHARACTERS_TO_REPLACE:
         name = name.replace(p, "-")
 
@@ -16,6 +16,9 @@ def valid_name(name: str, unique: bool = False) -> str:
         .decode(encoding="ascii")
         .strip("-")
     )
+
+    if lower:
+        name = name.lower()
 
     while "--" in name:
         name = name.replace("--", "-")

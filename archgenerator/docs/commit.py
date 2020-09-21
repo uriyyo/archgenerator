@@ -6,7 +6,7 @@ from pathlib import Path
 from git import Repo, Diff
 
 from . import context
-from .consts import LANG_TO_EMOJI
+from .config import LANG_TO_EMOJI
 
 
 class ChangeType(str, Enum):
@@ -22,7 +22,7 @@ class ChangeType(str, Enum):
         return self.name.title()
 
 
-TASK_NAME_REGEX = re.compile(r"(?:## \[)(.*?)(?:\])")
+TASK_NAME_REGEX = re.compile(r"(?:## \[)(.*?)(?:])")
 LANG_EMOJI_REGEX = re.compile(r"(?:#### )(.*)")
 
 
@@ -76,7 +76,7 @@ def get_dirty_task_docs(repo: Repo):
     for diff in repo.head.commit.diff(create_patch=True):
         file: Path = Path(repo.working_dir) / (diff.b_path or diff.a_path)
 
-        if file.suffix == ".md" and file.stem != "SUMMARY":
+        if file.suffix == ".md" and file.stem != "README":
             yield UpdateInfo(file, ChangeType(diff.change_type), diff)
 
 

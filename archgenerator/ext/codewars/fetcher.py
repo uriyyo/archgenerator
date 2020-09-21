@@ -2,28 +2,14 @@ from asyncio import gather
 from collections import defaultdict
 from itertools import count
 from json import loads
-from typing import List, AsyncIterable, Dict, Optional
+from typing import List, AsyncIterable, Dict
 
 from bs4 import Tag
 from httpx import AsyncClient, Request
 
 from .context import CODEWARS_USERNAME, CODEWARS_EMAIL, CODEWARS_PASSWORD
-from ..models import Book
-from ..scrapper import Page, one, many
-from ..utils import cached
-
-SECTION_EMOJI = {
-    "beta": "🌝",
-    "retired": "😶",
-    "1 kyu": "🏆",
-    "2 kyu": "👑",
-    "3 kyu": "💎",
-    "4 kyu": "💍",
-    "5 kyu": "🎯",
-    "6 kyu": "🎩",
-    "7 kyu": "🎁",
-    "8 kyu": "🎒",
-}
+from ...scrapper import Page, one, many
+from ...utils import cached
 
 
 class LoginPage(Page):
@@ -51,7 +37,7 @@ class KataPage(Page):
     metadata: dict = {}
 
     @property
-    def key(self):
+    def section(self):
         return self.kuy
 
     @property
@@ -146,31 +132,9 @@ async def sign_in(client: AsyncClient):
     client.auth = _auth
 
 
-def _init_codewars_cache(book: Book):
-    tasks = [task for section in book.sections for task in section.tasks]
-
-    descriptions_map = {
-        task.metadata["description"]: task.description for task in tasks
-    }
-
-    get_kata_description.add_provider(lambda client, kata: descriptions_map[kata.href])
-
-
-async def generate_book(old_book: Optional[Book] = None) -> Book:
-    async with AsyncClient(base_url="https://www.codewars.com", timeout=30) as client:
-        if old_book is not None:
-            _init_codewars_cache(old_book)
-
-        await sign_in(client)
-
-        katas = [kata async for kata in katas_stream(client)]
-        await gather(*(kata_description(client, kata) for kata in katas))
-
-        return Book.from_list(
-            katas,
-            name="CodeWars ✨",
-            section_name=lambda kata: f"{SECTION_EMOJI[kata.kuy.lower()]} {kata.kuy.title()}",
-        )
-
-
-__all__ = ["generate_book"]
+__all__ = [
+    "get_kata_description",
+    "sign_in",
+    "katas_stream",
+    "kata_description",
+]

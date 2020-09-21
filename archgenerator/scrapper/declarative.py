@@ -47,7 +47,8 @@ class Page:
             cls.__elements__ = {}
 
         cls.__elements__[name] = _PageElement(
-            type=cls.__annotations__.get(name, str), element=element,
+            type=cls.__annotations__.get(name, str),
+            element=element,
         )
 
 

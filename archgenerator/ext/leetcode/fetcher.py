@@ -1,25 +1,12 @@
-from asyncio import gather
 from collections import defaultdict
 from dataclasses import dataclass, field
-from typing import Dict, List, Sequence, Optional
+from typing import Dict, List, Sequence
 
 from httpx import AsyncClient
-from more_itertools import chunked
 
-from .context import LEETCODE_SESSION
-from ..models import Book
-from ..scrapper import Page, one
-from ..utils import retry, cached
-
-CHUNK_SIZE = 10
-
-DIFFICULTY_LEVEL = (None, "easy", "medium", "hard")
-LANG_TO_NORMALIZE_LANG = {"python3": "python"}
-SECTION_EMOJI = {
-    "easy": "👌",
-    "medium": "👊",
-    "hard": "💪",
-}
+from .config import LANG_TO_NORMALIZE_LANG, DIFFICULTY_LEVEL
+from ...scrapper import Page, one
+from ...utils import retry, cached
 
 
 class SubmissionPage(Page):
@@ -57,7 +44,7 @@ class Question:
         return self.title
 
     @property
-    def key(self):
+    def section(self):
         return self.difficulty
 
     @property
@@ -154,8 +141,8 @@ async def fetch_solutions(client: AsyncClient, question: Question):
         question.solutions[lang].append(await get_submission_code(client, submission))
 
 
-@retry
 @cached
+@retry
 async def get_description(client: AsyncClient, question: Question) -> str:
     response = await client.request(
         "GET",
@@ -184,47 +171,10 @@ async def fetch_descriptions(client: AsyncClient, question: Question):
     question.description = await get_description(client, question)
 
 
-def _init_leetcode_cache(book: Book):
-    tasks = [task for section in book.sections for task in section.tasks]
-
-    descriptions_map = {task.metadata["slug"]: task.description for task in tasks}
-
-    get_description.add_provider(
-        lambda client, question: descriptions_map[question.slug]
-    )
-
-    submissions_map = {
-        (submission_id, language): task.solutions[language][0].code
-        for task in tasks
-        for language, submission_id in task.metadata["submissions"].items()
-    }
-
-    get_submission_code.add_provider(
-        lambda client, submission: submissions_map[(submission.id, submission.language)]
-    )
-
-
-async def generate_book(old_book: Optional[Book] = None) -> Book:
-    async with AsyncClient(
-        base_url="https://leetcode.com",
-        cookies={"LEETCODE_SESSION": LEETCODE_SESSION.get()},
-    ) as client:
-        if old_book is not None:
-            _init_leetcode_cache(old_book)
-
-        questions = await questions_list(client)
-
-        for chunk in chunked(questions, CHUNK_SIZE):
-            await gather(*(fetch_solutions(client, question) for question in chunk))
-            await gather(*(fetch_descriptions(client, question) for question in chunk))
-
-        return Book.from_list(
-            questions,
-            name="LeetCode 💫",
-            section_name=lambda q: f"{SECTION_EMOJI[q.difficulty.lower()]} {q.difficulty.title()}",
-            section_sorter_key=DIFFICULTY_LEVEL.index,
-            section_reversed=False,
-        )
-
-
-__all__ = ["generate_book"]
+__all__ = [
+    "questions_list",
+    "fetch_solutions",
+    "fetch_descriptions",
+    "get_description",
+    "get_submission_code",
+]

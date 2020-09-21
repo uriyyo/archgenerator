@@ -1,15 +1,17 @@
 from asyncio import run
+from functools import wraps
 from pathlib import Path
-from typing import Callable, Awaitable
 from typing import Optional
 
 import click
 
-from ..docs.generator import generate_docs
+from ..configurator import load_config
+from ..docs import context
 from ..docs.commit import commit_docs
-from ..docs import context as docs_context
-from ..fetchers import codewars, leetcode, context as fetcher_context
+from ..docs.generator import generate_docs
 from ..models import Book
+from ..platform import PLATFORMS, load_platforms, Platform
+from ..serializer import load, dump
 
 DEFAULT_PATH = click.Path(dir_okay=False, writable=True, resolve_path=True)
 DEFAULT_DIR_PATH = click.Path(file_okay=False, resolve_path=True)
@@ -20,31 +22,50 @@ def main_cli():
     pass
 
 
-@main_cli.command(name="leetcode")
-@click.option("--session-id", envvar="LEETCODE_SESSION_ID", type=str, required=True)
-@click.option("-p", "--path", type=DEFAULT_PATH, default="leetcode.json")
-def leetcode_cli(session_id: str, path: str):
-    fetcher_context.LEETCODE_SESSION.set(session_id)
+def _init_config(func):
+    @click.option("-c", "--config", type=DEFAULT_PATH, default=f"config.json")
+    @wraps(func)
+    def wrapper(config: str, **kwargs):
+        config_path = Path(config)
 
-    run(_entry_point(leetcode.generate_book, path))
+        if config_path.exists():
+            load_config(config_path)
+
+        return func(config=config, **kwargs)
+
+    return wrapper
 
 
-@main_cli.command(name="codewars")
-@click.option("--email", envvar="CODEWARS_EMAIL", type=str, required=True)
-@click.option("--password", envvar="CODEWARS_PASSWORD", type=str, required=True)
-@click.option("-p", "--path", type=DEFAULT_PATH, default="codewars.json")
-def codewars_cli(email: str, password: str, path: str):
-    fetcher_context.CODEWARS_EMAIL.set(email)
-    fetcher_context.CODEWARS_PASSWORD.set(password)
+def _add_entry_point(platform: Platform):
+    @main_cli.command(name=platform.name)
+    @click.option("-p", "--path", type=DEFAULT_PATH, default=f"{platform.name}.json")
+    @_init_config
+    @platform.wrap_cli
+    def _entry_point(path: str, **_):
+        book_path: Path = Path(path)
+        old_book = load(Book, book_path) if book_path.exists() else None
 
-    run(_entry_point(codewars.generate_book, path))
+        new_book = run(platform.generate_book(old_book))
+        dump(new_book, book_path)
+
+
+load_platforms()
+
+for p in PLATFORMS.values():
+    _add_entry_point(p)
 
 
 @main_cli.command(name="docs")
 @click.option("-p", "--path", type=DEFAULT_DIR_PATH, default=".")
-def docs_cli(path: str):
+@_init_config
+def docs_cli(path: str, **_):
     root = Path(path).resolve()
-    books = [Book.from_file(p) for p in root.glob("*.json") if p.name != "book.json"]
+    books = [
+        load(Book, p)
+        for p in root.glob("*.json")
+        if p.name not in {"book.json", "config.json"}
+    ]
+    books.sort(key=lambda book: book.name)
 
     generate_docs(books, root)
 
@@ -54,27 +75,18 @@ def docs_cli(path: str):
 @click.option("--push", type=bool, is_flag=True, default=False)
 @click.option("--git-email", envvar="GIT_EMAIL", type=str)
 @click.option("--git-username", envvar="GIT_USERNAME", type=str)
+@_init_config
 def docs_cli(
     path: str,
     push: bool = False,
     git_username: Optional[str] = None,
     git_email: Optional[str] = None,
+    **_,
 ):
-    docs_context.GIT_EMAIL.set(git_email)
-    docs_context.GIT_USERNAME.set(git_username)
+    context.GIT_EMAIL.set(git_email)
+    context.GIT_USERNAME.set(git_username)
 
-    root = Path(path).resolve()
-    commit_docs(root, push)
-
-
-async def _entry_point(
-    generator: Callable[[Optional[Book]], Awaitable[Book]], path: str,
-):
-    book_path: Path = Path(path)
-    old_book = Book.from_file(book_path) if book_path.exists() else None
-
-    book = await generator(old_book)
-    book.dump_to_file(book_path)
+    commit_docs(Path(path).resolve(), push)
 
 
 __all__ = ["main_cli"]

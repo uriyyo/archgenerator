@@ -18,6 +18,9 @@ black = "^20.8b1"
 [tool.poetry.scripts]
 archgenerator = "archgenerator.cli.__main__:main_cli"
 
+[tool.poetry.plugins.archgenerator]
+codewars = "archgenerator.ext.codewars:CodeWarsPlatform"
+leetcode = "archgenerator.ext.leetcode:LeetCodePlatform"
 
 [tool.black]
 line-length = 88
