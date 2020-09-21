@@ -26,11 +26,13 @@ def init_context(root: Path):
     STYLES_ROOT.get().mkdir(parents=True)
     WEBSITE_CSS.get().touch()
 
+    (root / "README.md").touch(exist_ok=True)
+
     dump(
         obj={
             "title": CONFIG["title"],
             "root": ".",
-            "structure": {"readme": "./README.md", "summary": "./README.md"},
+            "structure": {"readme": "./README.md", "summary": "./SUMMARY.md"},
             "styles": {"website": "./styles/website.css"},
         },
         path=root / "book.json",

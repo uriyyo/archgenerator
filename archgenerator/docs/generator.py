@@ -115,7 +115,7 @@ def generate_summary(books: List[Book]):
         for book in books:
             yield from book_summary(book)
 
-    md.readme(context.DOCS.get(), summary(), "README.md")
+    md.readme(context.DOCS.get(), summary(), "SUMMARY.md")
     reset_names()
 
 
