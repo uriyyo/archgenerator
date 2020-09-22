@@ -7,7 +7,7 @@ from .config import CONFIG, LANG_TO_EMOJI, LANG_TO_PRETTY_LANG
 from .names import valid_name, reset_names
 from ..models import Book, Section, Task
 
-MD_IF_REGEX = re.compile(r"```(if(?:-not)?):(.*?)\n(.*?)```", re.MULTILINE | re.DOTALL)
+MD_IF_REGEX = re.compile(r"~~~(if(?:-not)?):(.*?)\n(.*?)~~~", re.MULTILINE | re.DOTALL)
 STYLE_REGEX = re.compile(r"<style(?:.*?)>(.*?)</style>", re.MULTILINE | re.DOTALL)
 
 
