@@ -76,7 +76,7 @@ def get_dirty_task_docs(repo: Repo):
     for diff in repo.head.commit.diff(create_patch=True):
         file: Path = Path(repo.working_dir) / (diff.b_path or diff.a_path)
 
-        if file.suffix == ".md" and file.stem != "README":
+        if file.suffix == ".md" and file.stem not in ("README", "SUMMARY"):
             yield UpdateInfo(file, ChangeType(diff.change_type), diff)
 
 
