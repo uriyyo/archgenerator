@@ -7,7 +7,7 @@ from .config import CONFIG, LANG_TO_EMOJI, LANG_TO_PRETTY_LANG
 from .names import valid_name, reset_names
 from ..models import Book, Section, Task
 
-MD_IF_REGEX = re.compile(r"~~~(if(?:-not)?):(.*?)\n(.*?)~~~", re.MULTILINE | re.DOTALL)
+MD_IF_REGEX = re.compile(r"(?:[`~]{3}\s*)(if(?:-not)?):(.*?)\n(.*?)(?:[`~]{3})", re.MULTILINE | re.DOTALL)
 STYLE_REGEX = re.compile(r"<style(?:.*?)>(.*?)</style>", re.MULTILINE | re.DOTALL)
 
 
@@ -31,7 +31,7 @@ def add_styles(style: str):
 
 
 def solve_if_logic(task: Task):
-    if "```if:" in task.description:
+    if MD_IF_REGEX.search(task.description):
         supported_lags = {*task.solutions}
 
         def replacer(match: re.Match) -> str:
