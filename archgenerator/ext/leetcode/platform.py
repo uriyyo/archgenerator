@@ -28,7 +28,7 @@ class LeetCodePlatform(Platform):
     options = {
         "session_id": (
             click.option(
-                "--session-id", envvar="LEETCODE_SESSION_ID", type=str, required=True
+                "--session-id", envvar="LEETCODE_SESSION_ID", type=str, required=False
             ),
             LEETCODE_SESSION,
         )

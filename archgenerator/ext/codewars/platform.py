@@ -18,13 +18,11 @@ class CodeWarsPlatform(Platform):
 
     options = {
         "email": (
-            click.option("--email", envvar="CODEWARS_EMAIL", type=str, required=True),
+            click.option("--email", envvar="CODEWARS_EMAIL", type=str),
             CODEWARS_EMAIL,
         ),
         "password": (
-            click.option(
-                "--password", envvar="CODEWARS_PASSWORD", type=str, required=True
-            ),
+            click.option("--password", envvar="CODEWARS_PASSWORD", type=str),
             CODEWARS_PASSWORD,
         ),
     }
