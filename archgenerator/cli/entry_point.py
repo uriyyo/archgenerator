@@ -12,6 +12,7 @@ from ..docs.generator import generate_docs
 from ..models import Book
 from ..platform import PLATFORMS, load_platforms, Platform
 from ..serializer import load, dump
+from ..workflow import init_workflow
 
 DEFAULT_PATH = click.Path(dir_okay=False, writable=True, resolve_path=True)
 DEFAULT_DIR_PATH = click.Path(file_okay=False, resolve_path=True)
@@ -76,7 +77,7 @@ def docs_cli(path: str, **_):
 @click.option("--git-email", envvar="GIT_EMAIL", type=str)
 @click.option("--git-username", envvar="GIT_USERNAME", type=str)
 @_init_config
-def docs_cli(
+def docs_commit_cli(
     path: str,
     push: bool = False,
     git_username: Optional[str] = None,
@@ -87,6 +88,12 @@ def docs_cli(
     context.GIT_USERNAME.set(git_username)
 
     commit_docs(Path(path).resolve(), push)
+
+
+@main_cli.command(name="init-workflow")
+@click.option("-p", "--path", type=DEFAULT_DIR_PATH, default=".")
+def docs_init_workflow(path: str):
+    init_workflow(Path(path))
 
 
 __all__ = ["main_cli"]
