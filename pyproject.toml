@@ -11,6 +11,7 @@ beautifulsoup4 = "^4.9.1"
 more-itertools = "^8.5.0"
 pydantic = "^1.6.1"
 GitPython = "^3.1.7"
+click = "^7.1.2"
 
 [tool.poetry.dev-dependencies]
 black = "^20.8b1"
