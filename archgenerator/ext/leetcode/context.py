@@ -1,5 +1,6 @@
 from contextvars import ContextVar
 
-LEETCODE_SESSION: ContextVar[str] = ContextVar("LEETCODE_SESSION")
+LEETCODE_EMAIL: ContextVar[str] = ContextVar("LEETCODE_EMAIL")
+LEETCODE_PASSWORD: ContextVar[str] = ContextVar("LEETCODE_PASSWORD")
 
-__all__ = ["LEETCODE_SESSION"]
+__all__ = ["LEETCODE_EMAIL", "LEETCODE_PASSWORD"]

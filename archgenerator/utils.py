@@ -1,8 +1,11 @@
-from asyncio import sleep
-from functools import wraps
+from asyncio import sleep, get_event_loop
+from contextvars import copy_context
+from functools import wraps, partial
 from itertools import count
 from random import randint
-from typing import Tuple
+from typing import Tuple, Callable, TypeVar, Awaitable
+
+T = TypeVar("T")
 
 
 def retry(attempts: int = 10, delay_range: Tuple[int, int] = (1, 10)):
@@ -43,4 +46,16 @@ def cached(func):
     return wrapper
 
 
-__all__ = ["cached", "retry"]
+def run_in_executor(func: Callable[..., T]) -> Callable[..., Awaitable[T]]:
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
+        context = copy_context()
+
+        return await get_event_loop().run_in_executor(
+            None, partial(context.run, func, *args, **kwargs)
+        )
+
+    return wrapper
+
+
+__all__ = ["cached", "retry", "run_in_executor"]

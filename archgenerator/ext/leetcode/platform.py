@@ -6,8 +6,9 @@ from httpx import AsyncClient
 from more_itertools import chunked
 
 from .config import CONFIG, DIFFICULTY_LEVEL
-from .context import LEETCODE_SESSION
+from .context import LEETCODE_EMAIL, LEETCODE_PASSWORD
 from .fetcher import (
+    sign_in,
     questions_list,
     fetch_solutions,
     fetch_descriptions,
@@ -26,12 +27,14 @@ class LeetCodePlatform(Platform):
     section_reversed = False
 
     options = {
-        "session_id": (
-            click.option(
-                "--session-id", envvar="LEETCODE_SESSION_ID", type=str, required=False
-            ),
-            LEETCODE_SESSION,
-        )
+        "email": (
+            click.option("--email", envvar="LEETCODE_EMAIL", type=str),
+            LEETCODE_EMAIL,
+        ),
+        "password": (
+            click.option("--password", envvar="LEETCODE_PASSWORD", type=str),
+            LEETCODE_PASSWORD,
+        ),
     }
 
     def init_cache(self, book: Book):
@@ -59,9 +62,11 @@ class LeetCodePlatform(Platform):
         return DIFFICULTY_LEVEL.index(name)
 
     async def fetch(self) -> List[TaskLike]:
+        leetcode_session = await sign_in()
+
         async with AsyncClient(
             base_url="https://leetcode.com",
-            cookies={"LEETCODE_SESSION": LEETCODE_SESSION.get()},
+            cookies={"LEETCODE_SESSION": leetcode_session},
         ) as client:
             questions = await questions_list(client)
 

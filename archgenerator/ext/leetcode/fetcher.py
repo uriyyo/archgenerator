@@ -1,12 +1,19 @@
+import time
 from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import Dict, List, Sequence
 
 from httpx import AsyncClient
+from selene import browser
+from selene.browser import driver
+from selene.support.conditions import be
+from selene.support.jquery_style_selectors import s
 
 from .config import LANG_TO_NORMALIZE_LANG, DIFFICULTY_LEVEL
+from .context import LEETCODE_EMAIL, LEETCODE_PASSWORD
 from ...scrapper import Page, one
-from ...utils import retry, cached
+from ...utils import retry, cached, run_in_executor
+from ...web import with_chrome
 
 
 class SubmissionPage(Page):
@@ -171,10 +178,28 @@ async def fetch_descriptions(client: AsyncClient, question: Question):
     question.description = await get_description(client, question)
 
 
+@run_in_executor
+@with_chrome
+def sign_in() -> str:
+    browser.open_url("https://leetcode.com/accounts/login/")
+
+    s('[name="login"]').set(LEETCODE_EMAIL.get())
+    s('[name="password"]').set(LEETCODE_PASSWORD.get())
+
+    s("#initial-loading").should_not(be.visible)
+    s("#signin_btn").should(be.visible).click()
+
+    while (leetcode_session := driver().get_cookie("LEETCODE_SESSION")) is None:
+        time.sleep(1)
+
+    return leetcode_session["value"]
+
+
 __all__ = [
     "questions_list",
     "fetch_solutions",
     "fetch_descriptions",
     "get_description",
     "get_submission_code",
+    "sign_in",
 ]
