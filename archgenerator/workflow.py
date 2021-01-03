@@ -29,7 +29,8 @@ jobs:
         env:
           CODEWARS_EMAIL: ${{ secrets.CODEWARS_EMAIL }}
           CODEWARS_PASSWORD: ${{ secrets.CODEWARS_PASSWORD }}
-          LEETCODE_SESSION_ID: ${{ secrets.LEETCODE_SESSION_ID }}
+          LEETCODE_EMAIL: ${{ secrets.LEETCODE_EMAIL }}
+          LEETCODE_PASSWORD: ${{ secrets.LEETCODE_PASSWORD }}
         run: |
           archgenerator codewars
           archgenerator leetcode
