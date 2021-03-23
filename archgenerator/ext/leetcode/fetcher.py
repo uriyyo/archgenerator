@@ -189,8 +189,12 @@ def sign_in() -> str:
     s("#initial-loading").should_not(be.visible)
     s("#signin_btn").should(be.visible).click()
 
-    while (leetcode_session := driver().get_cookie("LEETCODE_SESSION")) is None:
+    for _ in range(10):
+        if leetcode_session := driver().get_cookie("LEETCODE_SESSION"):
+            break
         time.sleep(1)
+    else:
+        raise TimeoutError
 
     return leetcode_session["value"]
 
