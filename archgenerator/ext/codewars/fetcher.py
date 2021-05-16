@@ -63,7 +63,7 @@ class KataPage(Page):
 
 
 class KatasPage(Page):
-    katas: List[KataPage] = many(".list-item")
+    katas: List[KataPage] = many(".list-item-solutions")
 
 
 async def katas_stream(client: AsyncClient, chunks: int = 50) -> AsyncIterable:
