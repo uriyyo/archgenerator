@@ -21,6 +21,7 @@ LANG_TO_EMOJI = {
     "rust": "📡",
     "kotlin": "🌱",
     "haskell": "🔗",
+    "sql": "📊",
 }
 
 add_config("docs.config", CONFIG)
