@@ -48,8 +48,8 @@ class UpdateInfo:
         def get_emojies(source: str) -> str:
             return "".join(
                 LANG_TO_EMOJI[lang.lower()]
-                for *_, lang in map(str.split, LANG_EMOJI_REGEX.findall(source))
-                if lang.lower() in LANG_TO_EMOJI
+                for args in map(str.split, LANG_EMOJI_REGEX.findall(source))
+                if args and (lang := args[-1].lower()) in LANG_TO_EMOJI
             )
 
         return get_emojies(self.commit_diff) or get_emojies(self.file_content)
