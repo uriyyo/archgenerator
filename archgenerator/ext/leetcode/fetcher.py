@@ -177,7 +177,6 @@ async def fetch_descriptions(client: AsyncClient, question: Question):
     question.description = await get_description(client, question)
 
 
-@retry(attempts=5)
 @run_in_executor
 @with_chrome
 def sign_in() -> str:
