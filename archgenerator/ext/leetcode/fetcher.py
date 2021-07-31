@@ -1,4 +1,3 @@
-import time
 from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import Dict, List, Sequence
@@ -178,6 +177,7 @@ async def fetch_descriptions(client: AsyncClient, question: Question):
     question.description = await get_description(client, question)
 
 
+@retry(attempts=5)
 @run_in_executor
 @with_chrome
 def sign_in() -> str:
@@ -189,12 +189,12 @@ def sign_in() -> str:
     s("#initial-loading").should_not(be.visible)
     s("#signin_btn").should(be.visible).click()
 
-    for _ in range(10):
-        if leetcode_session := driver().get_cookie("LEETCODE_SESSION"):
-            break
-        time.sleep(1)
-    else:
-        raise TimeoutError
+    s(".storyboard").should(be.visible)
+
+    leetcode_session = driver().get_cookie("LEETCODE_SESSION")
+
+    if leetcode_session is None:
+        raise ValueError
 
     return leetcode_session["value"]
 
