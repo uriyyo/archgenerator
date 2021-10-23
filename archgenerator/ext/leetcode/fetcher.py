@@ -9,7 +9,7 @@ from selene.support.conditions import be
 from selene.support.jquery_style_selectors import s
 
 from .config import LANG_TO_NORMALIZE_LANG, DIFFICULTY_LEVEL
-from .context import LEETCODE_EMAIL, LEETCODE_PASSWORD
+from .context import LEETCODE_EMAIL, LEETCODE_PASSWORD, LEETCODE_SESSION
 from ...scrapper import Page, one
 from ...utils import retry, cached, run_in_executor
 from ...web import with_chrome
@@ -179,7 +179,7 @@ async def fetch_descriptions(client: AsyncClient, question: Question):
 
 @run_in_executor
 @with_chrome
-def sign_in() -> str:
+def browser_sign_in() -> str:
     browser.open_url("https://leetcode.com/accounts/login/")
 
     s('[name="login"]').set(LEETCODE_EMAIL.get())
@@ -196,6 +196,20 @@ def sign_in() -> str:
         raise ValueError
 
     return leetcode_session["value"]
+
+
+async def sign_in() -> str:
+    if leetcode_session := LEETCODE_SESSION.get():
+        async with AsyncClient(
+            base_url="https://leetcode.com",
+            cookies={"LEETCODE_SESSION": leetcode_session},
+        ) as client:
+            response = await client.get("api/problems/all", params={"status": "Solved"})
+
+        if not response.is_error:
+            return leetcode_session
+
+    return await browser_sign_in()
 
 
 __all__ = [

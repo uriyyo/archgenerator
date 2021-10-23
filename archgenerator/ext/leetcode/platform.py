@@ -6,7 +6,7 @@ from httpx import AsyncClient
 from more_itertools import chunked
 
 from .config import CONFIG, DIFFICULTY_LEVEL
-from .context import LEETCODE_EMAIL, LEETCODE_PASSWORD
+from .context import LEETCODE_EMAIL, LEETCODE_PASSWORD, LEETCODE_SESSION
 from .fetcher import (
     sign_in,
     questions_list,
@@ -34,6 +34,10 @@ class LeetCodePlatform(Platform):
         "password": (
             click.option("--password", envvar="LEETCODE_PASSWORD", type=str),
             LEETCODE_PASSWORD,
+        ),
+        "session": (
+            click.option("--session", envvar="LEETCODE_SESSION", type=str),
+            LEETCODE_SESSION,
         ),
     }
 
