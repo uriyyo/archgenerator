@@ -9,7 +9,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 def _create_headless_browser() -> Chrome:
     options = ChromeOptions()
-    options.headless = True
+    # options.headless = True  # TODO: investigate why it fails when running in a headless mode
     driver = Chrome(ChromeDriverManager().install(), options=options)
 
     return driver
