@@ -15,10 +15,9 @@ from .fetcher import (
     get_description,
     get_submission_code,
 )
+from ...consts import TASKS_CHUNK_SIZE
 from ...models import Book
 from ...platform import Platform, TaskLike
-
-CHUNK_SIZE = 10
 
 
 class LeetCodePlatform(Platform):
@@ -74,7 +73,7 @@ class LeetCodePlatform(Platform):
         ) as client:
             questions = await questions_list(client)
 
-            for chunk in chunked(questions, CHUNK_SIZE):
+            for chunk in chunked(questions, TASKS_CHUNK_SIZE):
                 await gather(*(fetch_solutions(client, question) for question in chunk))
                 await gather(
                     *(fetch_descriptions(client, question) for question in chunk)

@@ -3,10 +3,12 @@ from typing import List
 
 import click
 from httpx import AsyncClient
+from more_itertools import chunked
 
 from .config import CONFIG
 from .context import CODEWARS_PASSWORD, CODEWARS_EMAIL
 from .fetcher import sign_in, katas_stream, kata_description, get_kata_description
+from ...consts import TASKS_CHUNK_SIZE
 from ...models import Book
 from ...platform import Platform, TaskLike
 
@@ -45,7 +47,9 @@ class CodeWarsPlatform(Platform):
             await sign_in(client)
 
             katas = [kata async for kata in katas_stream(client)]
-            await gather(*(kata_description(client, kata) for kata in katas))
+
+            for chunk in chunked(katas, TASKS_CHUNK_SIZE):
+                await gather(*(kata_description(client, kata) for kata in chunk))
 
             return katas
 
