@@ -22,6 +22,7 @@ LANG_TO_EMOJI = {
     "kotlin": "🌱",
     "haskell": "🔗",
     "sql": "📊",
+    "mysql": "📊",
 }
 
 add_config("docs.config", CONFIG)
