@@ -30,8 +30,11 @@ def retry(
     attempts: int = 10,
     delay_range: tuple[int, int] = (1, 10),
 ) -> Any:
-    if func is None:
-        return retry()(func)
+    if func is not None:
+        return retry(
+            attempts=attempts,
+            delay_range=delay_range,
+        )(func)
 
     def decorator(func):
         @wraps(func)

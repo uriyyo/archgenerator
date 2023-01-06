@@ -1,7 +1,9 @@
 from typing import Any, TYPE_CHECKING
 
+from dataclasses import field
+
 if TYPE_CHECKING:
-    from dataclasses import dataclass, field
+    from dataclasses import dataclass
 else:
     from pydantic.dataclasses import dataclass
 
