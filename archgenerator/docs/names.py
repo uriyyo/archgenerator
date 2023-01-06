@@ -3,7 +3,7 @@ from string import punctuation
 
 PATH_CHARACTERS_TO_REPLACE = {*punctuation, " "} - {"-"}
 
-_NAMES_CACHE = Counter()
+_NAMES_CACHE: Counter[str] = Counter()
 
 
 def valid_name(name: str, unique: bool = False, lower: bool = False) -> str:
@@ -26,8 +26,11 @@ def valid_name(name: str, unique: bool = False, lower: bool = False) -> str:
     return name
 
 
-def reset_names():
+def reset_names() -> None:
     _NAMES_CACHE.clear()
 
 
-__all__ = ["valid_name", "reset_names"]
+__all__ = [
+    "valid_name",
+    "reset_names",
+]

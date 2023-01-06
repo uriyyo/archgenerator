@@ -1,6 +1,6 @@
 from collections import defaultdict
 from dataclasses import dataclass, field
-from typing import Dict, List, Sequence
+from typing import Sequence, cast, Any
 
 from httpx import AsyncClient
 from selene import browser
@@ -30,7 +30,7 @@ class Submission:
     url: str
 
     @property
-    def language(self):
+    def language(self) -> str:
         return LANG_TO_NORMALIZE_LANG.get(self.lang, self.lang)
 
 
@@ -41,23 +41,23 @@ class Question:
     title: str
     difficulty: str
     submissions: Sequence[Submission] = ()
-    description: str = None
-    solutions: Dict[str, List[str]] = field(default_factory=lambda: defaultdict(list))
-    metadata: dict = None
+    description: str | None = None
+    solutions: dict[str, list[str]] = field(default_factory=lambda: defaultdict(list))
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     @property
-    def name(self):
+    def name(self) -> str:
         return self.title
 
     @property
-    def section(self):
+    def section(self) -> str:
         return self.difficulty
 
     @property
-    def link(self):
+    def link(self) -> str:
         return f"https://leetcode.com/problems/{self.slug}"
 
-    def init_metadata(self):
+    def init_metadata(self) -> None:
         self.metadata = {
             "slug": self.slug,
             "submissions": {},
@@ -69,7 +69,7 @@ class Question:
 
 
 @retry
-async def submissions_list(client: AsyncClient, slug: str) -> List[Submission]:
+async def submissions_list(client: AsyncClient, slug: str) -> list[Submission]:
     response = await client.request(
         "GET",
         "/graphql",
@@ -105,7 +105,7 @@ async def submissions_list(client: AsyncClient, slug: str) -> List[Submission]:
 
 
 @retry
-async def questions_list(client: AsyncClient) -> List[Question]:
+async def questions_list(client: AsyncClient) -> list[Question]:
     response = await client.get("/api/problems/all", params={"status": "Solved"})
     await response.aread()
     data = response.json()
@@ -115,7 +115,7 @@ async def questions_list(client: AsyncClient) -> List[Question]:
             id=questions["stat"]["question_id"],
             slug=questions["stat"]["question__title_slug"],
             title=questions["stat"]["question__title"],
-            difficulty=DIFFICULTY_LEVEL[questions["difficulty"]["level"]],
+            difficulty=cast(str, DIFFICULTY_LEVEL[questions["difficulty"]["level"]]),
         )
         for questions in data["stat_status_pairs"]
         if questions["status"] == "ac"
@@ -142,11 +142,11 @@ async def get_submission_code(client: AsyncClient, submission: Submission) -> st
     await response.aread()
     data = response.json()
 
-    return data["data"]["submissionDetails"]["code"]
+    return cast(str, data["data"]["submissionDetails"]["code"])
 
 
 @retry
-async def fetch_solutions(client: AsyncClient, question: Question):
+async def fetch_solutions(client: AsyncClient, question: Question) -> None:
     question.submissions = await submissions_list(client, question.slug)
 
     language_to_submission = {}
@@ -180,11 +180,11 @@ async def get_description(client: AsyncClient, question: Question) -> str:
     await response.aread()
     data = response.json()
 
-    return data["data"]["question"]["content"]
+    return cast(str, data["data"]["question"]["content"])
 
 
 @retry
-async def fetch_descriptions(client: AsyncClient, question: Question):
+async def fetch_descriptions(client: AsyncClient, question: Question) -> None:
     question.description = await get_description(client, question)
 
 
@@ -204,9 +204,9 @@ def browser_sign_in() -> str:
     leetcode_session = driver().get_cookie("LEETCODE_SESSION")
 
     if leetcode_session is None:
-        raise ValueError
+        raise RuntimeError("Failed to sign in")
 
-    return leetcode_session["value"]
+    return cast(str, leetcode_session["value"])
 
 
 async def sign_in() -> str:

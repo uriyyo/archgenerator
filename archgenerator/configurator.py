@@ -1,17 +1,19 @@
 from pathlib import Path
-from typing import List, Dict, Tuple
+from typing import Any, TypeAlias, Mapping, cast
 
 from .serializer import load
 
-_configs: List[Tuple[Tuple[str], Dict]] = []
+Config: TypeAlias = Mapping[Any, Any]
+
+_configs: list[tuple[tuple[str, ...], Config]] = []
 
 
-def add_config(key_path: str, config: Dict) -> Dict:
+def add_config(key_path: str, config: Config) -> Config:
     _configs.append((tuple(key_path.split(".")), config))
     return config
 
 
-def load_config(path: Path):
+def load_config(path: Path) -> None:
     data = load(dict, path)
 
     for key_path, config in _configs:
@@ -22,7 +24,10 @@ def load_config(path: Path):
 
             node = node[key]
         else:
-            config.update(node)
+            cast(dict[Any, Any], config).update(node)
 
 
-__all__ = ["add_config", "load_config"]
+__all__ = [
+    "add_config",
+    "load_config",
+]

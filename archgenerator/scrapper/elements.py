@@ -1,7 +1,7 @@
 import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any, Callable, Optional, Match
+from typing import Any, Callable, Match
 
 from bs4 import Tag
 
@@ -10,11 +10,11 @@ from .declarative import Page
 
 @dataclass
 class DeclarativeElement(ABC):
-    def __set_name__(self, owner: Page, name: str):
+    def __set_name__(self, owner: Page, name: str) -> None:
         owner.add_element(name, self)
 
     @abstractmethod
-    def resolve(self, context: Tag, target: Any):
+    def resolve(self, context: Tag, target: Any) -> Any:
         pass
 
 
@@ -23,7 +23,7 @@ class ElementAttribute(DeclarativeElement):
     parent: DeclarativeElement
     attribute: str
 
-    def resolve(self, context: Tag, target: Any):
+    def resolve(self, context: Tag, target: Any) -> Any:
         context = self.parent.resolve(context, target)
         return context.attrs[self.attribute]
 
@@ -32,7 +32,7 @@ class ElementAttribute(DeclarativeElement):
 class ElementText(DeclarativeElement):
     parent: DeclarativeElement
 
-    def resolve(self, context: Tag, target: Any):
+    def resolve(self, context: Tag, target: Any) -> Any:
         return self.parent.resolve(context, target).text
 
 
@@ -40,11 +40,14 @@ class ElementText(DeclarativeElement):
 class ElementTextRegex(DeclarativeElement):
     parent: DeclarativeElement
     pattern: str
-    post_process: Optional[Callable[[Match], str]] = None
+    post_process: Callable[[Any], str] | None = None
 
-    def resolve(self, context: Tag, target: Any):
+    def resolve(self, context: Tag, target: Any) -> Any:
         content = str(self.parent.resolve(context, target))
         match = re.search(self.pattern, content)
+
+        if match is None:
+            raise ValueError(f"Regex {self.pattern!r} not found")
 
         if self.post_process:
             return self.post_process(match)
@@ -59,7 +62,7 @@ class Element(DeclarativeElement, ABC):
 
 @dataclass
 class OneElement(Element):
-    def regex(self, pattern: str, post_process: Optional[Callable[[Match], str]] = None) -> ElementTextRegex:
+    def regex(self, pattern: str, post_process: Callable[[Match[str]], str] | None = None) -> ElementTextRegex:
         return ElementTextRegex(self, pattern, post_process)
 
     @property
@@ -69,13 +72,13 @@ class OneElement(Element):
     def attr(self, attribute: str) -> ElementAttribute:
         return ElementAttribute(self, attribute)
 
-    def resolve(self, context: Tag, target: Any):
+    def resolve(self, context: Tag, target: Any) -> Any:
         return context.select_one(self.selector)
 
 
 @dataclass
 class ManyElements(Element):
-    def resolve(self, context: Tag, target: Any):
+    def resolve(self, context: Tag, target: Any) -> Any:
         elements = context.select(self.selector)
 
         try:
@@ -97,4 +100,8 @@ def many(selector: str) -> Any:
     return ManyElements(selector)
 
 
-__all__ = ["DeclarativeElement", "one", "many"]
+__all__ = [
+    "DeclarativeElement",
+    "one",
+    "many",
+]

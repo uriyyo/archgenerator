@@ -1,24 +1,23 @@
 from abc import ABC, abstractmethod
 from contextvars import ContextVar
 from typing import (
-    Dict,
     Protocol,
     runtime_checkable,
-    Optional,
     Any,
-    List,
     Mapping,
-    Tuple,
     Callable,
     ClassVar,
     TypedDict,
+    TypeVar,
+    ParamSpec,
+    cast,
 )
 
 from pkg_resources import iter_entry_points
 
 from .models import Book, Solution, Section, Task
 
-ClickOptionWrapper = Callable
+ClickOptionWrapper = Callable[..., Any]
 
 
 @runtime_checkable
@@ -26,13 +25,13 @@ class TaskLike(Protocol):
     name: str
     link: str
     section: str
-    description: Optional[str] = None
-    solutions: Dict[str, List[str]] = None
-    metadata: Optional[dict] = None
+    description: str | None
+    solutions: dict[str, list[str]]
+    metadata: dict[str, Any]
 
     @abstractmethod
-    def init_metadata(self):
-        ...
+    def init_metadata(self) -> None:
+        pass
 
 
 class PlatformConfig(TypedDict):
@@ -40,18 +39,22 @@ class PlatformConfig(TypedDict):
     sections_emoji: Mapping[str, str]
 
 
+T = TypeVar("T")
+P = ParamSpec("P")
+
+
 class Platform(ABC):
     name: ClassVar[str]
     config: PlatformConfig
     section_reversed: ClassVar[bool] = False
-    options: ClassVar[Mapping[str, Tuple[ClickOptionWrapper, ContextVar]]] = {}
+    options: ClassVar[Mapping[str, tuple[ClickOptionWrapper, ContextVar[Any]]]] = {}
 
     @abstractmethod
-    async def fetch(self) -> List[TaskLike]:
-        ...
+    async def fetch(self) -> list[TaskLike]:
+        pass
 
     def init_cache(self, book: Book) -> None:
-        ...
+        pass
 
     def book_name(self) -> str:
         return self.config["title"]
@@ -62,19 +65,19 @@ class Platform(ABC):
     def section_sorter_key(self, name: str) -> Any:
         return name
 
-    def wrap_cli(self, cli: Callable) -> Callable:
-        def wrapper(**kwargs):
+    def wrap_cli(self, cli: Callable[P, T]) -> Callable[P, T]:
+        def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
             for name, (_, var) in self.options.items():
                 var.set(kwargs[name])
 
-            return cli(**kwargs)
+            return cli(*args, **kwargs)
 
         for option, _ in self.options.values():
             wrapper = option(wrapper)
 
-        return wrapper
+        return cast(Callable[P, T], wrapper)
 
-    async def generate_book(self, old_book: Optional[Book] = None) -> Book:
+    async def generate_book(self, old_book: Book | None = None) -> Book:
         if old_book is not None and self.init_cache is not None:
             self.init_cache(old_book)
 
@@ -110,12 +113,18 @@ class Platform(ABC):
         return book
 
 
-PLATFORMS: Dict[str, Platform] = {}
+PLATFORMS: dict[str, Platform] = {}
 
 
-def load_platforms():
+def load_platforms() -> None:
     for entry_point in iter_entry_points("archgenerator"):
         PLATFORMS[entry_point.name] = entry_point.load()()
 
 
-__all__ = ["PLATFORMS", "Platform", "PlatformConfig", "TaskLike", "load_platforms"]
+__all__ = [
+    "PLATFORMS",
+    "Platform",
+    "PlatformConfig",
+    "TaskLike",
+    "load_platforms",
+]

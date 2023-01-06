@@ -22,4 +22,7 @@ CONFIG: PlatformConfig = {
 add_config("codewars.config", CONFIG)
 add_config("codewars.section_emoji", SECTION_EMOJI)
 
-__all__ = ["CONFIG", "SECTION_EMOJI"]
+__all__ = [
+    "CONFIG",
+    "SECTION_EMOJI",
+]

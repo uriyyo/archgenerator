@@ -1,6 +1,9 @@
-from typing import List, Optional, Dict
+from typing import Any, TYPE_CHECKING
 
-from pydantic.dataclasses import dataclass
+if TYPE_CHECKING:
+    from dataclasses import dataclass, field
+else:
+    from pydantic.dataclasses import dataclass
 
 
 @dataclass
@@ -13,21 +16,26 @@ class Solution:
 class Task:
     name: str
     link: str
-    description: Optional[str] = None
-    solutions: Dict[str, List[Solution]] = None
-    metadata: Optional[dict] = None
+    description: str | None = None
+    solutions: dict[str, list[Solution]] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
 class Section:
     name: str
-    tasks: List[Task] = None
+    tasks: list[Task] = field(default_factory=list)
 
 
 @dataclass
 class Book:
     name: str
-    sections: List[Section] = None
+    sections: list[Section] = field(default_factory=list)
 
 
-__all__ = ["Book", "Section", "Task", "Solution"]
+__all__ = [
+    "Book",
+    "Section",
+    "Task",
+    "Solution",
+]

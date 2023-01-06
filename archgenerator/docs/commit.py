@@ -1,7 +1,9 @@
+from __future__ import annotations
 import re
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
+from typing import Any, Iterator
 
 from git import Repo, Diff
 
@@ -15,11 +17,11 @@ class ChangeType(str, Enum):
     DELETE = "D"
 
     @classmethod
-    def _missing_(cls, _):
+    def _missing_(cls, _: Any) -> ChangeType:
         return cls.ADD
 
-    def __str__(self):
-        return self.name.title()
+    def __str__(self) -> str:
+        return self.name.title()  # type: ignore[no-any-return]
 
 
 TASK_NAME_REGEX = re.compile(r"(?:## \[)(.*?)(?:])")
@@ -38,10 +40,13 @@ class UpdateInfo:
 
     @property
     def task_name(self) -> str:
-        def get_name(source: str) -> str:
-            return (m := TASK_NAME_REGEX.search(source)) and m.group(1)
+        def get_name(source: str) -> str | None:
+            return (m := TASK_NAME_REGEX.search(source)) and m.group(1)  # type: ignore
 
-        return get_name(self.commit_diff) or get_name(self.file_content)
+        name = get_name(self.commit_diff) or get_name(self.file_content)
+        assert name is not None
+
+        return name
 
     @property
     def emojies(self) -> str:
@@ -55,15 +60,15 @@ class UpdateInfo:
         return get_emojies(self.commit_diff) or get_emojies(self.file_content)
 
     @property
-    def file_content(self):
+    def file_content(self) -> str:
         return self.file.read_text("utf-8")
 
     @property
     def commit_diff(self) -> str:
-        return self.diff.diff.decode("utf-8")
+        return self.diff.diff.decode("utf-8")  # type: ignore
 
 
-def configure_repo(repo: Repo):
+def configure_repo(repo: Repo) -> None:
     for option, value in (
         ("name", context.GIT_USERNAME.get()),
         ("email", context.GIT_EMAIL.get()),
@@ -72,15 +77,15 @@ def configure_repo(repo: Repo):
             repo.config_writer().set_value("user", option, value).release()
 
 
-def get_dirty_task_docs(repo: Repo):
+def get_dirty_task_docs(repo: Repo) -> Iterator[UpdateInfo]:
     for diff in repo.head.commit.diff(create_patch=True):
-        file: Path = Path(repo.working_dir) / (diff.b_path or diff.a_path)
+        file: Path = Path(repo.working_dir) / (diff.b_path or diff.a_path)  # type: ignore
 
         if file.suffix == ".md" and file.stem not in ("README", "SUMMARY"):
             yield UpdateInfo(file, ChangeType(diff.change_type), diff)
 
 
-def commit_docs(repo_path: Path, push_commit: bool = False):
+def commit_docs(repo_path: Path, push_commit: bool = False) -> None:
     repo = Repo(repo_path)
     repo.git.add(repo_path)
     configure_repo(repo)
@@ -94,4 +99,6 @@ def commit_docs(repo_path: Path, push_commit: bool = False):
             repo.remote().push()
 
 
-__all__ = ["commit_docs"]
+__all__ = [
+    "commit_docs",
+]

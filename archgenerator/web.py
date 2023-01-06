@@ -1,6 +1,6 @@
 from contextlib import contextmanager
 from functools import wraps
-from typing import Iterator
+from typing import Iterator, TypeVar, ParamSpec, Callable
 
 from selene.browser import set_driver
 from selenium.webdriver import Chrome, ChromeOptions
@@ -26,13 +26,20 @@ def chrome() -> Iterator[Chrome]:
         driver.quit()
 
 
-def with_chrome(func):
+T = TypeVar("T")
+P = ParamSpec("P")
+
+
+def with_chrome(func: Callable[P, T]) -> Callable[P, T]:
     @wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
         with chrome():
             return func(*args, **kwargs)
 
     return wrapper
 
 
-__all__ = ["chrome", "with_chrome"]
+__all__ = [
+    "chrome",
+    "with_chrome",
+]

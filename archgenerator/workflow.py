@@ -16,10 +16,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Set up Python 3.8
+      - name: Set up Python 3.11
         uses: actions/setup-python@v2
         with:
-          python-version: 3.8
+          python-version: 3.11
 
       - name: Install dependencies
         run: |
@@ -53,11 +53,13 @@ jobs:
 """
 
 
-def init_workflow(root: Path = None):
+def init_workflow(root: Path | None = None) -> None:
     workflow_file: Path = (root or Path.cwd()) / ".github" / "workflows" / "update.yml"
     workflow_file.parent.mkdir(parents=True, exist_ok=True)
 
     workflow_file.write_text(UPDATE_WORKFLOW, encoding="utf-8")
 
 
-__all__ = ["init_workflow"]
+__all__ = [
+    "init_workflow",
+]

@@ -19,11 +19,17 @@ def code(content: str, lang: str) -> str:
     return f"```{lang}\n{content}\n```"
 
 
-def readme(root: Path, content: Iterable[str], name: str = "README.md"):
+def readme(root: Path, content: Iterable[str | None], name: str = "README.md") -> None:
     root.mkdir(parents=True, exist_ok=True)
 
     readme_path = root / name
     readme_path.write_text("\n".join(s or "" for s in content), encoding="utf-8")
 
 
-__all__ = ["code", "link", "header", "option", "readme"]
+__all__ = [
+    "code",
+    "link",
+    "header",
+    "option",
+    "readme",
+]

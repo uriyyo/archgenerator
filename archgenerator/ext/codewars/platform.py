@@ -1,5 +1,4 @@
 from asyncio import gather
-from typing import List
 
 import click
 from httpx import AsyncClient
@@ -29,14 +28,16 @@ class CodeWarsPlatform(Platform):
         ),
     }
 
-    def init_cache(self, book: Book):
+    def init_cache(self, book: Book) -> None:
         tasks = [task for section in book.sections for task in section.tasks]
 
-        descriptions_map = {task.metadata["description"]: task.description for task in tasks}
+        descriptions_map: dict[str, str] = {
+            task.metadata["description"]: task.description for task in tasks if task.description
+        }
 
         get_kata_description.add_provider(lambda client, kata: descriptions_map[kata.href])
 
-    async def fetch(self) -> List[TaskLike]:
+    async def fetch(self) -> list[TaskLike]:
         async with AsyncClient(
             base_url="https://www.codewars.com",
             timeout=30,
@@ -52,4 +53,6 @@ class CodeWarsPlatform(Platform):
             return katas
 
 
-__all__ = ["CodeWarsPlatform"]
+__all__ = [
+    "CodeWarsPlatform",
+]

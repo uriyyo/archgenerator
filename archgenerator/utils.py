@@ -1,16 +1,37 @@
-from asyncio import sleep, get_event_loop
-from contextvars import copy_context
-from functools import wraps, partial
+from asyncio import sleep, to_thread
+from functools import wraps
 from itertools import count
 from random import randint
-from typing import Tuple, Callable, TypeVar, Awaitable
+from typing import Callable, TypeVar, Awaitable, Protocol, ParamSpec, cast, overload, Any, no_type_check
 
+P = ParamSpec("P")
 T = TypeVar("T")
 
 
-def retry(attempts: int = 10, delay_range: Tuple[int, int] = (1, 10)):
-    if callable(attempts):
-        return retry()(attempts)
+@overload
+def retry(func: Callable[P, Awaitable[T]]) -> Callable[P, Awaitable[T]]:
+    pass
+
+
+@overload
+def retry(
+    *,
+    attempts: int = ...,
+    delay_range: tuple[int, int] = ...,
+) -> Callable[[Callable[P, Awaitable[T]]], Callable[P, Awaitable[T]]]:
+    pass
+
+
+@no_type_check
+def retry(
+    func: Any | None = None,
+    /,
+    *,
+    attempts: int = 10,
+    delay_range: tuple[int, int] = (1, 10),
+) -> Any:
+    if func is None:
+        return retry()(func)
 
     def decorator(func):
         @wraps(func)
@@ -29,11 +50,19 @@ def retry(attempts: int = 10, delay_range: Tuple[int, int] = (1, 10)):
     return decorator
 
 
-def cached(func):
-    providers = []
+class CachedFunction(Protocol[P, T]):
+    async def __call__(self, *args: P.args, **kwargs: P.kwargs) -> T:
+        pass
+
+    def add_provider(self, provider: Callable[P, T]) -> None:
+        pass
+
+
+def cached(func: Callable[P, Awaitable[T]]) -> CachedFunction[P, T]:
+    providers: list[Callable[P, T]] = []
 
     @wraps(func)
-    async def wrapper(*args, **kwargs):
+    async def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
         for provider in providers:
             try:
                 return provider(*args, **kwargs)
@@ -42,18 +71,20 @@ def cached(func):
 
         return await func(*args, **kwargs)
 
-    wrapper.add_provider = providers.append
-    return wrapper
+    wrapper.add_provider = providers.append  # type: ignore[attr-defined]
+    return cast(CachedFunction[P, T], wrapper)
 
 
-def run_in_executor(func: Callable[..., T]) -> Callable[..., Awaitable[T]]:
+def run_in_executor(func: Callable[P, T]) -> Callable[P, Awaitable[T]]:
     @wraps(func)
-    async def wrapper(*args, **kwargs):
-        context = copy_context()
-
-        return await get_event_loop().run_in_executor(None, partial(context.run, func, *args, **kwargs))
+    async def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+        return await to_thread(func, *args, **kwargs)
 
     return wrapper
 
 
-__all__ = ["cached", "retry", "run_in_executor"]
+__all__ = [
+    "cached",
+    "retry",
+    "run_in_executor",
+]

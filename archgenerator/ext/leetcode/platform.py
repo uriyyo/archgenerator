@@ -1,5 +1,5 @@
 from asyncio.tasks import gather
-from typing import List, Any
+from typing import Any, cast
 
 import click
 from httpx import AsyncClient
@@ -40,10 +40,12 @@ class LeetCodePlatform(Platform):
         ),
     }
 
-    def init_cache(self, book: Book):
+    def init_cache(self, book: Book) -> None:
         tasks = [task for section in book.sections for task in section.tasks]
 
-        descriptions_map = {task.metadata["slug"]: task.description for task in tasks}
+        descriptions_map: dict[str, str] = {
+            task.metadata["slug"]: task.description for task in tasks if task.description
+        }
 
         get_description.add_provider(lambda client, question: descriptions_map[question.slug])
 
@@ -60,7 +62,7 @@ class LeetCodePlatform(Platform):
     def section_sorter_key(self, name: str) -> Any:
         return DIFFICULTY_LEVEL.index(name)
 
-    async def fetch(self) -> List[TaskLike]:
+    async def fetch(self) -> list[TaskLike]:
         leetcode_session = await sign_in()
 
         async with AsyncClient(
@@ -74,7 +76,9 @@ class LeetCodePlatform(Platform):
                 await gather(*(fetch_solutions(client, question) for question in chunk))
                 await gather(*(fetch_descriptions(client, question) for question in chunk))
 
-            return questions
+            return cast(list[TaskLike], questions)
 
 
-__all__ = ["LeetCodePlatform"]
+__all__ = [
+    "LeetCodePlatform",
+]

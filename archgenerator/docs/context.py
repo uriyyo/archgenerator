@@ -1,20 +1,19 @@
 import shutil
 from contextvars import ContextVar
 from pathlib import Path
-from typing import Optional
 
 from .config import CONFIG
 from ..serializer import dump
 
-GIT_USERNAME: ContextVar[Optional[str]] = ContextVar("GIT_USERNAME")
-GIT_EMAIL: ContextVar[Optional[str]] = ContextVar("GIT_EMAIL")
+GIT_USERNAME: ContextVar[str | None] = ContextVar("GIT_USERNAME")
+GIT_EMAIL: ContextVar[str | None] = ContextVar("GIT_EMAIL")
 
 DOCS: ContextVar[Path] = ContextVar("DOCS")
 STYLES_ROOT: ContextVar[Path] = ContextVar("STYLES_ROOT")
 WEBSITE_CSS: ContextVar[Path] = ContextVar("WEBSITE_CSS")
 
 
-def init_context(root: Path):
+def init_context(root: Path) -> None:
     DOCS.set(root)
     STYLES_ROOT.set(root / "styles")
     WEBSITE_CSS.set(root / "styles" / "website.css")

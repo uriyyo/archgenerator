@@ -1,7 +1,7 @@
 from asyncio import run
 from functools import wraps
 from pathlib import Path
-from typing import Optional
+from typing import Callable, Any
 
 import click
 
@@ -19,14 +19,14 @@ DEFAULT_DIR_PATH = click.Path(file_okay=False, resolve_path=True)
 
 
 @click.group()
-def main_cli():
+def main_cli() -> None:
     pass
 
 
-def _init_config(func):
+def _init_config(func: Callable[..., Any]) -> Callable[..., Any]:
     @click.option("-c", "--config", type=DEFAULT_PATH, default="config.json")
     @wraps(func)
-    def wrapper(config: str, **kwargs):
+    def wrapper(config: str, **kwargs: Any) -> Any:
         config_path = Path(config)
 
         if config_path.exists():
@@ -37,12 +37,12 @@ def _init_config(func):
     return wrapper
 
 
-def _add_entry_point(platform: Platform):
+def _add_entry_point(platform: Platform) -> None:
     @main_cli.command(name=platform.name)
     @click.option("-p", "--path", type=DEFAULT_PATH, default=f"{platform.name}.json")
     @_init_config
     @platform.wrap_cli
-    def _entry_point(path: str, **_):
+    def _entry_point(path: str, **_: Any) -> None:
         book_path: Path = Path(path)
         old_book = load(Book, book_path) if book_path.exists() else None
 
@@ -59,7 +59,7 @@ for p in PLATFORMS.values():
 @main_cli.command(name="docs")
 @click.option("-p", "--path", type=DEFAULT_DIR_PATH, default=".")
 @_init_config
-def docs_cli(path: str, **_):
+def docs_cli(path: str, **_: Any) -> None:
     root = Path(path).resolve()
     books = [load(Book, p) for p in root.glob("*.json") if p.name not in {"book.json", "config.json"}]
     books.sort(key=lambda book: book.name)
@@ -76,10 +76,10 @@ def docs_cli(path: str, **_):
 def docs_commit_cli(
     path: str,
     push: bool = False,
-    git_username: Optional[str] = None,
-    git_email: Optional[str] = None,
-    **_,
-):
+    git_username: str | None = None,
+    git_email: str | None = None,
+    **_: Any,
+) -> None:
     context.GIT_EMAIL.set(git_email)
     context.GIT_USERNAME.set(git_username)
 
@@ -88,8 +88,10 @@ def docs_commit_cli(
 
 @main_cli.command(name="init-workflow")
 @click.option("-p", "--path", type=DEFAULT_DIR_PATH, default=".")
-def docs_init_workflow(path: str):
+def docs_init_workflow(path: str) -> None:
     init_workflow(Path(path))
 
 
-__all__ = ["main_cli"]
+__all__ = [
+    "main_cli",
+]

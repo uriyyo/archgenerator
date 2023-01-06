@@ -1,6 +1,6 @@
 import re
 from pathlib import Path
-from typing import List
+from typing import cast, Iterator
 
 from . import context, md
 from .config import CONFIG, LANG_TO_EMOJI, LANG_TO_PRETTY_LANG
@@ -23,37 +23,38 @@ def extract_css_styles(content: str) -> str:
     return content
 
 
-def add_styles(style: str):
+def add_styles(style: str) -> None:
     style_path = context.WEBSITE_CSS.get()
 
     old_styles = style_path.read_text(encoding="utf-8")
     style_path.write_text(f"{old_styles}\n{style}", encoding="utf-8")
 
 
-def solve_if_logic(task: Task):
-    if MD_IF_REGEX.search(task.description):
+def solve_if_logic(task: Task) -> str:
+    if (desc := task.description) and MD_IF_REGEX.search(desc):
         supported_lags = {*task.solutions}
 
-        def replacer(match: re.Match) -> str:
+        def replacer(match: re.Match[str]) -> str:
             if_type, langs, if_content = match.groups()
             if_langs = {*langs.strip().split(",")}
 
             if (if_type == "if") == bool(supported_lags & if_langs):
-                return if_content
+                return cast(str, if_content)
 
             return ""
 
-        return MD_IF_REGEX.sub(replacer, task.description)
+        return MD_IF_REGEX.sub(replacer, desc)
 
-    return task.description
+    assert desc is not None
+    return desc
 
 
-def generate_task(parent: Path, task: Task):
-    def _generate_task():
+def generate_task(parent: Path, task: Task) -> None:
+    def _generate_task() -> Iterator[str | None]:
         yield md.header(md.link(task.name, task.link))
-        yield
+        yield None
         yield extract_css_styles(solve_if_logic(task))
-        yield
+        yield None
         yield md.header("Solutions")
 
         for lang, (solution, *_) in task.solutions.items():
@@ -62,12 +63,12 @@ def generate_task(parent: Path, task: Task):
             yield md.header(f"{LANG_TO_EMOJI[lang.lower()]} {pretty_lang}", important=4)
             yield md.code(solution.code, lang)
 
-        yield
+        yield None
 
     md.readme(parent, _generate_task(), f"{valid_name(task.name, unique=True)}.md")
 
 
-def generate_section(parent: Path, section: Section):
+def generate_section(parent: Path, section: Section) -> None:
     root = parent / valid_name(section.name, lower=True)
     root.mkdir(parents=True, exist_ok=True)
 
@@ -75,15 +76,15 @@ def generate_section(parent: Path, section: Section):
         generate_task(root, task)
 
 
-def generate_book(book: Book):
+def generate_book(book: Book) -> None:
     root = context.DOCS.get() / valid_name(book.name, lower=True)
 
     for section in book.sections:
         generate_section(root, section)
 
 
-def generate_summary(books: List[Book]):
-    def section_summary(parent: str, section: Section):
+def generate_summary(books: list[Book]) -> None:
+    def section_summary(parent: str, section: Section) -> Iterator[str | None]:
         yield md.option(
             md.link(
                 name=section.name,
@@ -102,14 +103,14 @@ def generate_summary(books: List[Book]):
                 ident=4,
             )
 
-    def book_summary(book: Book):
-        yield
+    def book_summary(book: Book) -> Iterator[str | None]:
+        yield None
         yield md.header(book.name)
 
         for section in book.sections:
             yield from section_summary(valid_name(book.name, lower=True), section)
 
-    def summary():
+    def summary() -> Iterator[str | None]:
         yield md.header(CONFIG["title"], important=1)
 
         for book in books:
@@ -119,7 +120,7 @@ def generate_summary(books: List[Book]):
     reset_names()
 
 
-def generate_docs(books: List[Book], docs_path: Path):
+def generate_docs(books: list[Book], docs_path: Path) -> None:
     context.init_context(docs_path)
     generate_summary(books)
 
@@ -127,4 +128,6 @@ def generate_docs(books: List[Book], docs_path: Path):
         generate_book(book)
 
 
-__all__ = ["generate_docs"]
+__all__ = [
+    "generate_docs",
+]

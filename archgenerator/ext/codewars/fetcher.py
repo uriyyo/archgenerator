@@ -2,10 +2,10 @@ from asyncio import gather
 from collections import defaultdict
 from itertools import count
 from json import loads
-from typing import List, AsyncIterable, Dict
+from typing import AsyncIterable, Any
 
 from bs4 import Tag
-from httpx import AsyncClient, Request
+from httpx import AsyncClient
 
 from .context import CODEWARS_USERNAME, CODEWARS_EMAIL, CODEWARS_PASSWORD
 from ...scrapper import Page, one, many
@@ -32,22 +32,22 @@ class KataPage(Page):
     name: str = one("div + a[href]").text
     href: str = one("div + a[href]").attr("href")
 
-    solutions: Dict[str, List[str]]
+    solutions: dict[str, list[str]]
     description: str
-    metadata: dict = {}
+    metadata: dict[str, Any] = {}
 
     @property
-    def section(self):
+    def section(self) -> str:
         return self.kuy
 
     @property
-    def link(self):
+    def link(self) -> str:
         return f"https://www.codewars.com{self.href}"
 
-    def init_metadata(self):
+    def init_metadata(self) -> None:
         self.metadata = {"description": self.href}
 
-    def post_init(self, context: Tag):
+    def post_init(self, context: Tag) -> None:
         # TODO: should be better way to parse it
         self.solutions = defaultdict(list)
         language = None
@@ -63,10 +63,10 @@ class KataPage(Page):
 
 
 class KatasPage(Page):
-    katas: List[KataPage] = many(".list-item-solutions")
+    katas: list[KataPage] = many(".list-item-solutions")
 
 
-async def katas_stream(client: AsyncClient, chunks: int = 50) -> AsyncIterable:
+async def katas_stream(client: AsyncClient, chunks: int = 50) -> AsyncIterable[Any]:
     async def fetch(page_number: int = 0) -> KatasPage:
         response = await client.get(
             f"/users/{CODEWARS_USERNAME.get()}/completed_solutions",
@@ -89,18 +89,18 @@ async def katas_stream(client: AsyncClient, chunks: int = 50) -> AsyncIterable:
 
 
 @cached
-async def get_kata_description(client: AsyncClient, kata: KataPage):
+async def get_kata_description(client: AsyncClient, kata: KataPage) -> str:
     response = await client.get(kata.href)
     kata_desc = KataDescriptionPage(await response.aread())
 
     return kata_desc.description
 
 
-async def kata_description(client: AsyncClient, kata: KataPage):
+async def kata_description(client: AsyncClient, kata: KataPage) -> None:
     kata.description = await get_kata_description(client, kata)
 
 
-async def sign_in(client: AsyncClient):
+async def sign_in(client: AsyncClient) -> None:
     response = await client.get("/users/sign_in")
     page = LoginPage(await response.aread())
 
@@ -122,12 +122,7 @@ async def sign_in(client: AsyncClient):
     *_, username = home_page.username_link.split("/")
 
     CODEWARS_USERNAME.set(username)
-
-    def _auth(request: Request) -> Request:
-        request.headers.update({"Authorization": page.auth_token, "X-Requested-With": "XMLHttpRequest"})
-        return request
-
-    client.auth = _auth
+    client.headers.update({"Authorization": page.auth_token, "X-Requested-With": "XMLHttpRequest"})
 
 
 __all__ = [
