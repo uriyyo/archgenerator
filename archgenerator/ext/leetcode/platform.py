@@ -45,9 +45,7 @@ class LeetCodePlatform(Platform):
 
         descriptions_map = {task.metadata["slug"]: task.description for task in tasks}
 
-        get_description.add_provider(
-            lambda client, question: descriptions_map[question.slug]
-        )
+        get_description.add_provider(lambda client, question: descriptions_map[question.slug])
 
         submissions_map = {
             (submission_id, language): task.solutions[language][0].code
@@ -56,9 +54,7 @@ class LeetCodePlatform(Platform):
         }
 
         get_submission_code.add_provider(
-            lambda client, submission: submissions_map[
-                (submission.id, submission.language)
-            ]
+            lambda client, submission: submissions_map[(submission.id, submission.language)]
         )
 
     def section_sorter_key(self, name: str) -> Any:
@@ -70,14 +66,13 @@ class LeetCodePlatform(Platform):
         async with AsyncClient(
             base_url="https://leetcode.com",
             cookies={"LEETCODE_SESSION": leetcode_session},
+            follow_redirects=True,
         ) as client:
             questions = await questions_list(client)
 
             for chunk in chunked(questions, TASKS_CHUNK_SIZE):
                 await gather(*(fetch_solutions(client, question) for question in chunk))
-                await gather(
-                    *(fetch_descriptions(client, question) for question in chunk)
-                )
+                await gather(*(fetch_descriptions(client, question) for question in chunk))
 
             return questions
 

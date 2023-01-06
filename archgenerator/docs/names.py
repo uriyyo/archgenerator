@@ -10,12 +10,7 @@ def valid_name(name: str, unique: bool = False, lower: bool = False) -> str:
     for p in PATH_CHARACTERS_TO_REPLACE:
         name = name.replace(p, "-")
 
-    name = (
-        name.replace(" ", "-")
-        .encode(encoding="ascii", errors="ignore")
-        .decode(encoding="ascii")
-        .strip("-")
-    )
+    name = name.replace(" ", "-").encode(encoding="ascii", errors="ignore").decode(encoding="ascii").strip("-")
 
     if lower:
         name = name.lower()

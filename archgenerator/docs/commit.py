@@ -85,9 +85,7 @@ def commit_docs(repo_path: Path, push_commit: bool = False):
     repo.git.add(repo_path)
     configure_repo(repo)
 
-    commit_message = "\n".join(
-        info.commit_message for info in get_dirty_task_docs(repo)
-    )
+    commit_message = "\n".join(info.commit_message for info in get_dirty_task_docs(repo))
 
     if commit_message:
         repo.index.commit(commit_message)

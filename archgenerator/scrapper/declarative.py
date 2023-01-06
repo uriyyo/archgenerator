@@ -19,16 +19,10 @@ class Page:
     __elements__: Dict[str, _PageElement]
 
     def __init__(self, source: Union[str, bytes, Tag]):
-        context = (
-            source
-            if isinstance(source, Tag)
-            else BeautifulSoup(source, features="html.parser")
-        )
+        context = source if isinstance(source, Tag) else BeautifulSoup(source, features="html.parser")
 
         for name, page_element in self.__elements__.items():
-            setattr(
-                self, name, page_element.element.resolve(context, page_element.type)
-            )
+            setattr(self, name, page_element.element.resolve(context, page_element.type))
 
         self.post_init(context)
 

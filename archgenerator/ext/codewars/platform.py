@@ -32,17 +32,15 @@ class CodeWarsPlatform(Platform):
     def init_cache(self, book: Book):
         tasks = [task for section in book.sections for task in section.tasks]
 
-        descriptions_map = {
-            task.metadata["description"]: task.description for task in tasks
-        }
+        descriptions_map = {task.metadata["description"]: task.description for task in tasks}
 
-        get_kata_description.add_provider(
-            lambda client, kata: descriptions_map[kata.href]
-        )
+        get_kata_description.add_provider(lambda client, kata: descriptions_map[kata.href])
 
     async def fetch(self) -> List[TaskLike]:
         async with AsyncClient(
-            base_url="https://www.codewars.com", timeout=30
+            base_url="https://www.codewars.com",
+            timeout=30,
+            follow_redirects=True,
         ) as client:
             await sign_in(client)
 

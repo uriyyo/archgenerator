@@ -24,7 +24,7 @@ def main_cli():
 
 
 def _init_config(func):
-    @click.option("-c", "--config", type=DEFAULT_PATH, default=f"config.json")
+    @click.option("-c", "--config", type=DEFAULT_PATH, default="config.json")
     @wraps(func)
     def wrapper(config: str, **kwargs):
         config_path = Path(config)
@@ -61,11 +61,7 @@ for p in PLATFORMS.values():
 @_init_config
 def docs_cli(path: str, **_):
     root = Path(path).resolve()
-    books = [
-        load(Book, p)
-        for p in root.glob("*.json")
-        if p.name not in {"book.json", "config.json"}
-    ]
+    books = [load(Book, p) for p in root.glob("*.json") if p.name not in {"book.json", "config.json"}]
     books.sort(key=lambda book: book.name)
 
     generate_docs(books, root)

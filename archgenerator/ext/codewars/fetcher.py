@@ -105,7 +105,7 @@ async def sign_in(client: AsyncClient):
     page = LoginPage(await response.aread())
 
     response = await client.post(
-        f"/users/sign_in",
+        "/users/sign_in",
         data={
             "utf-8": "",
             "authenticity_token": page.auth_token,
@@ -124,9 +124,7 @@ async def sign_in(client: AsyncClient):
     CODEWARS_USERNAME.set(username)
 
     def _auth(request: Request) -> Request:
-        request.headers.update(
-            {"Authorization": page.auth_token, "X-Requested-With": "XMLHttpRequest"}
-        )
+        request.headers.update({"Authorization": page.auth_token, "X-Requested-With": "XMLHttpRequest"})
         return request
 
     client.auth = _auth

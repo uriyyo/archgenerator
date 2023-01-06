@@ -59,9 +59,7 @@ class Element(DeclarativeElement, ABC):
 
 @dataclass
 class OneElement(Element):
-    def regex(
-        self, pattern: str, post_process: Optional[Callable[[Match], str]] = None
-    ) -> ElementTextRegex:
+    def regex(self, pattern: str, post_process: Optional[Callable[[Match], str]] = None) -> ElementTextRegex:
         return ElementTextRegex(self, pattern, post_process)
 
     @property

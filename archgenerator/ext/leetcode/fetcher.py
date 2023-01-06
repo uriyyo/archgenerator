@@ -101,10 +101,7 @@ async def submissions_list(client: AsyncClient, slug: str) -> List[Submission]:
     await response.aread()
     data = response.json()
 
-    return [
-        Submission(**submission)
-        for submission in data["data"]["submissionList"]["submissions"]
-    ]
+    return [Submission(**submission) for submission in data["data"]["submissionList"]["submissions"]]
 
 
 @retry
@@ -128,10 +125,24 @@ async def questions_list(client: AsyncClient) -> List[Question]:
 @cached
 @retry
 async def get_submission_code(client: AsyncClient, submission: Submission) -> str:
-    response = await client.get(f"/submissions/detail/{submission.id}/")
-    page = SubmissionPage(await response.aread())
+    response = await client.post(
+        "/graphql",
+        json={
+            "query": """
+                query submissionDetails($submissionId: Int!) {
+                    submissionDetails(submissionId: $submissionId) {
+                        code
+                }
+            }
+            """,
+            "variables": {"submissionId": submission.id},
+        },
+    )
 
-    return page.code.encode().decode("unicode-escape")
+    await response.aread()
+    data = response.json()
+
+    return data["data"]["submissionDetails"]["code"]
 
 
 @retry
@@ -152,7 +163,7 @@ async def fetch_solutions(client: AsyncClient, question: Question):
 async def get_description(client: AsyncClient, question: Question) -> str:
     response = await client.request(
         "GET",
-        f"/graphql",
+        "/graphql",
         json={
             "operationName": "questionData",
             "variables": {"titleSlug": question.slug},
@@ -203,6 +214,7 @@ async def sign_in() -> str:
         async with AsyncClient(
             base_url="https://leetcode.com",
             cookies={"LEETCODE_SESSION": leetcode_session},
+            follow_redirects=True,
         ) as client:
             response = await client.get("api/problems/all", params={"status": "Solved"})
 

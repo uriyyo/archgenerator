@@ -95,19 +95,14 @@ class Platform(ABC):
                     link=t.link,
                     description=t.description,
                     solutions={
-                        language: [
-                            Solution(language=language, code=solution)
-                            for solution in solutions
-                        ]
+                        language: [Solution(language=language, code=solution) for solution in solutions]
                         for language, solutions in t.solutions.items()
                     },
                     metadata=t.metadata,
                 )
             )
 
-        for section_name in sorted(
-            sections, reverse=self.section_reversed, key=self.section_sorter_key
-        ):
+        for section_name in sorted(sections, reverse=self.section_reversed, key=self.section_sorter_key):
             section = sections[section_name]
             section.tasks.sort(key=lambda t: t.name)
             book.sections.append(section)

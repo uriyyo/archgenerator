@@ -51,9 +51,7 @@ def run_in_executor(func: Callable[..., T]) -> Callable[..., Awaitable[T]]:
     async def wrapper(*args, **kwargs):
         context = copy_context()
 
-        return await get_event_loop().run_in_executor(
-            None, partial(context.run, func, *args, **kwargs)
-        )
+        return await get_event_loop().run_in_executor(None, partial(context.run, func, *args, **kwargs))
 
     return wrapper
 
