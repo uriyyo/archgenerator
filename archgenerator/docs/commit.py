@@ -21,7 +21,7 @@ class ChangeType(str, Enum):
         return cls.ADD
 
     def __str__(self) -> str:
-        return self.name.title()  # type: ignore[no-any-return]
+        return self.name.title()
 
 
 TASK_NAME_REGEX = re.compile(r"(?:## \[)(.*?)(?:])")
@@ -79,7 +79,7 @@ def configure_repo(repo: Repo) -> None:
 
 def get_dirty_task_docs(repo: Repo) -> Iterator[UpdateInfo]:
     for diff in repo.head.commit.diff(create_patch=True):
-        file: Path = Path(repo.working_dir) / (diff.b_path or diff.a_path)  # type: ignore
+        file: Path = Path(repo.working_dir) / (diff.b_path or diff.a_path)
 
         if file.suffix == ".md" and file.stem not in ("README", "SUMMARY"):
             yield UpdateInfo(file, ChangeType(diff.change_type), diff)
