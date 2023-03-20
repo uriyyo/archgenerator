@@ -7,8 +7,8 @@ on:
       - "Lint"
     types:
       - "completed"
-    branches:
-      - "dependabot/**"
+#     branches:
+#       - "dependabot/**"
 
 permissions:
   contents: write
