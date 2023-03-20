@@ -1,11 +1,11 @@
 name: Dependabot auto-merge
 
 on:
-  workflow_run:
+#   workflow_run:
 #     workflows:
 #       - "Lint"
-    types:
-      - "completed"
+#     types:
+#       - "completed"
 #     branches:
 #       - "dependabot/**"
   workflow_dispatch:
