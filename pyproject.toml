@@ -6,7 +6,7 @@ authors = ["Yurii Karabas <1998uriyyo@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.11"
-httpx = "^0.23.3"
+httpx = "^0.24.0"
 beautifulsoup4 = "^4.12.2"
 more-itertools = "^9.1.0"
 pydantic = "^1.10.7"
