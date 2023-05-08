@@ -17,7 +17,7 @@ webdriver-manager = "^3.8.6"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.3.0"
-ruff = "^0.0.264"
+ruff = "^0.0.265"
 mypy = "^1.2"
 types-setuptools = "^67.7.0.1"
 
