@@ -19,7 +19,7 @@ webdriver-manager = "^3.8.6"
 black = "^23.3.0"
 ruff = "^0.0.274"
 mypy = "^1.4"
-types-setuptools = "^67.8.0.0"
+types-setuptools = "^68.0.0.0"
 
 [tool.poetry.scripts]
 archgenerator = "archgenerator.cli.__main__:main_cli"
