@@ -848,13 +848,13 @@ wsproto = ">=0.14"
 
 [[package]]
 name = "types-setuptools"
-version = "68.0.0.1"
+version = "68.0.0.2"
 description = "Typing stubs for setuptools"
 optional = false
 python-versions = "*"
 files = [
-    {file = "types-setuptools-68.0.0.1.tar.gz", hash = "sha256:a0454ea7ad0711f63a602caa87929003a83cab89224ae1506ed44bb5be8fe7d7"},
-    {file = "types_setuptools-68.0.0.1-py3-none-any.whl", hash = "sha256:cc5acbc464b106104899e9b9eb4955dd47e854753c8d4ee2ce697eaf0f4d74e1"},
+    {file = "types-setuptools-68.0.0.2.tar.gz", hash = "sha256:fede8b46862dd9fe68a12f11a8444c3d240d11178eba7d584d6f22ca3114b894"},
+    {file = "types_setuptools-68.0.0.2-py3-none-any.whl", hash = "sha256:311a14819416716029d1113c7452143e2fa857e6cc19186bb6830aff69379c48"},
 ]
 
 [[package]]
@@ -921,4 +921,4 @@ h11 = ">=0.9.0,<1"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "815c6cbc163ddd4ac5dda70e4eadb9908eaacea6b38089ad85a9dbbceb73e7c8"
+content-hash = "452cd1fb6afba61914f80df54de69565087b7ba0048109a1301e047fcd385aa3"
