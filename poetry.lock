@@ -369,13 +369,13 @@ files = [
 
 [[package]]
 name = "more-itertools"
-version = "10.0.0"
+version = "10.1.0"
 description = "More routines for operating on iterables, beyond itertools"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "more-itertools-10.0.0.tar.gz", hash = "sha256:cd65437d7c4b615ab81c0640c0480bc29a550ea032891977681efd28344d51e1"},
-    {file = "more_itertools-10.0.0-py3-none-any.whl", hash = "sha256:928d514ffd22b5b0a8fce326d57f423a55d2ff783b093bab217eda71e732330f"},
+    {file = "more-itertools-10.1.0.tar.gz", hash = "sha256:626c369fa0eb37bac0291bce8259b332fd59ac792fa5497b59837309cd5b114a"},
+    {file = "more_itertools-10.1.0-py3-none-any.whl", hash = "sha256:64e0735fcfdc6f3464ea133afe8ea4483b1c5fe3a3d69852e6503b43a0b222e6"},
 ]
 
 [[package]]
@@ -900,4 +900,4 @@ h11 = ">=0.9.0,<1"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "610ffd3dc61050fbc8b26252b8b81ac7a721945bc83ae5833d4f8bd6c421ddca"
+content-hash = "2bb55b62f90718554896137237658707823ac5059ef830abcc4d40160fcbc725"
