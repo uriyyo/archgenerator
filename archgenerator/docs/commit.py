@@ -41,7 +41,7 @@ class UpdateInfo:
     @property
     def task_name(self) -> str:
         def get_name(source: str) -> str | None:
-            return (m := TASK_NAME_REGEX.search(source)) and m.group(1)  # type: ignore
+            return (m := TASK_NAME_REGEX.search(source)) and m.group(1)
 
         name = get_name(self.commit_diff) or get_name(self.file_content)
         assert name is not None
