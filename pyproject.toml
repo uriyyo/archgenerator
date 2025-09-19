@@ -16,7 +16,7 @@ selene = "^1.0.2"
 webdriver-manager = "^4.0.2"
 
 [tool.poetry.group.dev.dependencies]
-black = "^25.1.0"
+black = "^25.9.0"
 ruff = "^0.13.1"
 mypy = "^1.15"
 types-setuptools = "^80.4.0.20250511"
