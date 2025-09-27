@@ -75,7 +75,7 @@ class Platform(ABC):
         for option, _ in self.options.values():
             wrapper = option(wrapper)
 
-        return cast(Callable[P, T], wrapper)
+        return wrapper
 
     async def generate_book(self, old_book: Book | None = None) -> Book:
         if old_book is not None and self.init_cache is not None:
