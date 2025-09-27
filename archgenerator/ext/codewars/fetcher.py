@@ -58,7 +58,9 @@ class KataPage(Page):
                 language = language.strip().lower()
             else:
                 assert language is not None, "Language must be set"
-                code = part.select_one("code").text
+                node = part.select_one("code")
+                assert node, "Can't find node"
+                code = node.text
                 self.solutions[language].append(code)
 
 
